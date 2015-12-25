@@ -26,7 +26,7 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <Import Project="$(SolutionDir)Configurations\Project.Default.props" />
+  <Import Project="$(SolutionDir)..\Configurations\Project.Default.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{07192AC8-2BCA-4F84-8ADE-BA47F038A2B6}</ProjectGuid>
     <RootNamespace>ImageProcessing</RootNamespace>
