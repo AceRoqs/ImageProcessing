@@ -46,12 +46,12 @@ struct PCX_header
 
 static void validate_pcx_header(_In_ const PCX_header* header)
 {
-    PortableRuntime::check_exception(header->manufacturer == PCX_manufacturer::PCX_magic);
-    PortableRuntime::check_exception(header->encoding == PCX_encoding::RLE_encoding);
-    PortableRuntime::check_exception(header->min_x < header->max_x);
-    PortableRuntime::check_exception(header->min_y < header->max_y);
-    PortableRuntime::check_exception((header->color_plane_count == 1) || (header->color_plane_count == 3));
-    PortableRuntime::check_exception(header->bits_per_pixel == 8);
+    CHECK_EXCEPTION(header->manufacturer == PCX_manufacturer::PCX_magic, u8"Image data is invalid.");
+    CHECK_EXCEPTION(header->encoding == PCX_encoding::RLE_encoding, u8"Image data is invalid.");
+    CHECK_EXCEPTION(header->min_x < header->max_x, u8"Image data is invalid.");
+    CHECK_EXCEPTION(header->min_y < header->max_y, u8"Image data is invalid.");
+    CHECK_EXCEPTION((header->color_plane_count == 1) || (header->color_plane_count == 3), u8"Image data is invalid.");
+    CHECK_EXCEPTION(header->bits_per_pixel == 8, u8"Image data is invalid.");
 }
 
 static const uint8_t* rle_decode(
@@ -60,7 +60,7 @@ static const uint8_t* rle_decode(
     _Out_ uint8_t* value,
     _Out_ uint8_t* run_count)
 {
-    PortableRuntime::check_exception(start_iterator < end_iterator);
+    CHECK_EXCEPTION(start_iterator < end_iterator, u8"Image data is invalid.");
 
     *run_count = 1;
     if(*start_iterator >= 192)
@@ -68,7 +68,7 @@ static const uint8_t* rle_decode(
         *run_count = *start_iterator - 192;
         ++start_iterator;
 
-        PortableRuntime::check_exception(start_iterator < end_iterator);
+        CHECK_EXCEPTION(start_iterator < end_iterator, u8"Image data is invalid.");
     }
 
     *value = *start_iterator;
@@ -109,7 +109,7 @@ static void pcx_decode(
     const std::function<uint8_t* (uint8_t*, uint8_t*, uint8_t, uint8_t)> fill_palette =
     [palette](uint8_t* output_start_iterator, uint8_t* output_end_iterator, uint8_t value, uint8_t run_count) -> uint8_t*
     {
-        PortableRuntime::check_exception(output_start_iterator + (run_count * sizeof(Color_rgb)) <= output_end_iterator);
+        CHECK_EXCEPTION(output_start_iterator + (run_count * sizeof(Color_rgb)) <= output_end_iterator, u8"Image data is invalid.");
         std::fill_n(reinterpret_cast<Color_rgb*>(output_start_iterator), run_count, palette[value]);
         return output_start_iterator + (run_count * sizeof(palette[0]));
     };
@@ -117,7 +117,7 @@ static void pcx_decode(
     const std::function<uint8_t* (uint8_t*, uint8_t*, uint8_t, uint8_t)> fill_no_palette =
     [](uint8_t* output_start_iterator, uint8_t* output_end_iterator, uint8_t value, uint8_t run_count) -> uint8_t*
     {
-        PortableRuntime::check_exception(output_start_iterator + run_count <= output_end_iterator);
+        CHECK_EXCEPTION(output_start_iterator + run_count <= output_end_iterator, u8"Image data is invalid.");
         std::fill_n(output_start_iterator, run_count, value);
         return output_start_iterator + run_count;
     };
@@ -130,7 +130,7 @@ static void pcx_decode(
 
 Bitmap decode_bitmap_from_pcx_memory(_In_reads_(size) const uint8_t* pcx_memory, size_t size)
 {
-    PortableRuntime::check_exception(size >= sizeof(PCX_header));
+    CHECK_EXCEPTION(size >= sizeof(PCX_header), u8"Image data is invalid.");
 
     const PCX_header* header = reinterpret_cast<const PCX_header*>(pcx_memory);
     validate_pcx_header(header);
@@ -139,12 +139,12 @@ Bitmap decode_bitmap_from_pcx_memory(_In_reads_(size) const uint8_t* pcx_memory,
     if(header->version == PCX_version::PC_Paintbrush_3 && header->color_plane_count == 1)
     {
         // Add space for palette + C0 marker byte.
-        PortableRuntime::check_exception(size >= sizeof(PCX_header) + sizeof(Color_rgb) * 256 + 1);
+        CHECK_EXCEPTION(size >= sizeof(PCX_header) + sizeof(Color_rgb) * 256 + 1, u8"Image data is invalid.");
 
         palette = reinterpret_cast<const Color_rgb*>(pcx_memory + size - sizeof(Color_rgb) * 256);
 
         // Validate 0C byte.  Some documentation incorrectly says this byte is C0 instead of 0C.
-        PortableRuntime::check_exception(reinterpret_cast<const uint8_t*>(palette)[-1] == 0x0c);
+        CHECK_EXCEPTION(reinterpret_cast<const uint8_t*>(palette)[-1] == 0x0c, u8"Image data is invalid.");
     }
 
     Bitmap bitmap;

@@ -144,7 +144,7 @@ static void validate_tga_header(_In_ const TGA_header* header)
 
     // id_length is unbounded.
 
-    PortableRuntime::check_exception(succeeded);
+    CHECK_EXCEPTION(succeeded, u8"Image data is invalid.");
 }
 
 static size_t get_pixel_data_offset(_In_ const TGA_header* header)
@@ -156,7 +156,7 @@ static size_t get_pixel_data_offset(_In_ const TGA_header* header)
 
 Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory, size_t size)
 {
-    PortableRuntime::check_exception(size >= sizeof(TGA_header));
+    CHECK_EXCEPTION(size >= sizeof(TGA_header), u8"Image data is invalid.");
 
     const TGA_header* header = reinterpret_cast<const TGA_header*>(tga_memory);
     validate_tga_header(header);
@@ -171,8 +171,8 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
     const size_t pixel_count = static_cast<size_t>(header->image_width) * header->image_height *
                                (header->bits_per_pixel / 8) / sizeof(Color_rgb);
 
-    PortableRuntime::check_exception((pixel_start + pixel_count >= pixel_start) && (tga_memory + size >= tga_memory));
-    PortableRuntime::check_exception(reinterpret_cast<const uint8_t*>(pixel_start + pixel_count) <= (tga_memory + size));
+    CHECK_EXCEPTION((pixel_start + pixel_count >= pixel_start) && (tga_memory + size >= tga_memory), u8"Image data is invalid.");
+    CHECK_EXCEPTION(reinterpret_cast<const uint8_t*>(pixel_start + pixel_count) <= (tga_memory + size), u8"Image data is invalid.");
 
     // MSVC complains that std::copy is insecure.
     // _SCL_SECURE_NO_WARNINGS or checked iterator required.
@@ -201,8 +201,8 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
 
 std::vector<uint8_t> encode_tga_from_bitmap(const Bitmap& bitmap)
 {
-    PortableRuntime::check_exception(bitmap.xsize <= max_dimension);
-    PortableRuntime::check_exception(bitmap.ysize <= max_dimension);
+    CHECK_EXCEPTION(bitmap.xsize <= max_dimension, u8"Image data is invalid.");
+    CHECK_EXCEPTION(bitmap.ysize <= max_dimension, u8"Image data is invalid.");
 
     std::vector<uint8_t> tga(sizeof(TGA_header) + bitmap.bitmap.size() * sizeof(Color_rgb));
 
