@@ -166,20 +166,21 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
     bitmap.ysize = header->image_height;
     bitmap.filtered = true;
 
+    // TODO: 2016: Validate no integer overflows from untrusted data.
     const size_t pixel_data_offset = get_pixel_data_offset(header);
-    const auto pixel_start = reinterpret_cast<const Color_rgb*>(tga_memory + pixel_data_offset);
-    const size_t pixel_count = static_cast<size_t>(header->image_width) * header->image_height *
-                               (header->bits_per_pixel / 8) / sizeof(Color_rgb);
+    const auto pixel_size = sizeof(Color_rgb);
+    const auto pixel_start = reinterpret_cast<const uint8_t*>(tga_memory + pixel_data_offset);
+    const size_t pixel_count = static_cast<size_t>(header->image_width) * header->image_height;
 
-    CHECK_EXCEPTION((pixel_start + pixel_count >= pixel_start) && (tga_memory + size >= tga_memory), u8"Image data is invalid.");
-    CHECK_EXCEPTION(reinterpret_cast<const uint8_t*>(pixel_start + pixel_count) <= (tga_memory + size), u8"Image data is invalid.");
+    CHECK_EXCEPTION((pixel_start + (pixel_count * pixel_size) >= pixel_start) && (tga_memory + size >= tga_memory), u8"Image data is invalid.");
+    CHECK_EXCEPTION(reinterpret_cast<const uint8_t*>(pixel_start + (pixel_count * pixel_size)) <= (tga_memory + size), u8"Image data is invalid.");
 
     // MSVC complains that std::copy is insecure.
     // _SCL_SECURE_NO_WARNINGS or checked iterator required.
-    bitmap.bitmap.resize(pixel_count);
+    bitmap.bitmap.resize(pixel_count * pixel_size);
     if(is_top_to_bottom(header->image_descriptor))
     {
-        std::copy(pixel_start, pixel_start + pixel_count, &bitmap.bitmap[0]);
+        std::copy(pixel_start, pixel_start + (pixel_count * pixel_size), &bitmap.bitmap[0]);
     }
     else
     {
@@ -189,9 +190,9 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
         for(decltype(header->image_height) iy = 0; iy < header->image_height; ++iy)
         {
             const auto row_offset = row_length * iy;
-            std::copy(pixel_start + row_offset,
-                      pixel_start + row_offset + row_length,
-                      &bitmap.bitmap[pixel_count - row_offset - row_length]);
+            std::copy(pixel_start + (row_offset * pixel_size),
+                      pixel_start + ((row_offset + row_length) * pixel_size),
+                      &bitmap.bitmap[(pixel_count - row_offset - row_length) * pixel_size]);
         }
     }
 

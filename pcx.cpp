@@ -98,8 +98,8 @@ static void rle_decode_fill(
 static void pcx_decode(
     _In_reads_to_ptr_(end_iterator) const uint8_t* start_iterator,
     const uint8_t* end_iterator,
-    _Out_writes_to_ptr_(bitmap_end_iterator) Color_rgb* bitmap_start_iterator,
-    Color_rgb* bitmap_end_iterator,
+    _Out_writes_to_ptr_(bitmap_end_iterator) uint8_t* bitmap_start_iterator,
+    uint8_t* bitmap_end_iterator,
     _In_reads_opt_(256) const Color_rgb* palette)
 {
     // MSVC complains that fill_n is insecure.
@@ -107,24 +107,24 @@ static void pcx_decode(
     // MSVC 10 also does not implement fill_n's C++11 return value.
     // TODO: 2014: Revisit this in a future compiler.
     const std::function<uint8_t* (uint8_t*, uint8_t*, uint8_t, uint8_t)> fill_palette =
-    [palette](uint8_t* output_start_iterator, uint8_t* output_end_iterator, uint8_t value, uint8_t run_count) -> uint8_t*
-    {
-        CHECK_EXCEPTION(output_start_iterator + (run_count * sizeof(Color_rgb)) <= output_end_iterator, u8"Image data is invalid.");
-        std::fill_n(reinterpret_cast<Color_rgb*>(output_start_iterator), run_count, palette[value]);
-        return output_start_iterator + (run_count * sizeof(palette[0]));
-    };
+        [palette](uint8_t* output_start_iterator, uint8_t* output_end_iterator, uint8_t value, uint8_t run_count) -> uint8_t*
+        {
+            CHECK_EXCEPTION(output_start_iterator + (run_count * sizeof(Color_rgb)) <= output_end_iterator, u8"Image data is invalid.");
+            std::fill_n(reinterpret_cast<Color_rgb*>(output_start_iterator), run_count, palette[value]);
+            return output_start_iterator + (run_count * sizeof(palette[0]));
+        };
 
     const std::function<uint8_t* (uint8_t*, uint8_t*, uint8_t, uint8_t)> fill_no_palette =
-    [](uint8_t* output_start_iterator, uint8_t* output_end_iterator, uint8_t value, uint8_t run_count) -> uint8_t*
-    {
-        CHECK_EXCEPTION(output_start_iterator + run_count <= output_end_iterator, u8"Image data is invalid.");
-        std::fill_n(output_start_iterator, run_count, value);
-        return output_start_iterator + run_count;
-    };
+        [](uint8_t* output_start_iterator, uint8_t* output_end_iterator, uint8_t value, uint8_t run_count) -> uint8_t*
+        {
+            CHECK_EXCEPTION(output_start_iterator + run_count <= output_end_iterator, u8"Image data is invalid.");
+            std::fill_n(output_start_iterator, run_count, value);
+            return output_start_iterator + run_count;
+        };
 
     const auto fill_buffer = palette != nullptr ? fill_palette : fill_no_palette;
     rle_decode_fill(start_iterator, end_iterator,
-                    reinterpret_cast<uint8_t*>(bitmap_start_iterator), reinterpret_cast<uint8_t*>(bitmap_end_iterator),
+                    bitmap_start_iterator, bitmap_end_iterator,
                     fill_buffer);
 }
 
@@ -152,7 +152,7 @@ Bitmap decode_bitmap_from_pcx_memory(_In_reads_(size) const uint8_t* pcx_memory,
     bitmap.ysize = static_cast<unsigned int>(header->max_y) - header->min_y + 1;
     bitmap.filtered = true;
 
-    bitmap.bitmap.resize(bitmap.xsize * bitmap.ysize);
+    bitmap.bitmap.resize(bitmap.xsize * bitmap.ysize * sizeof(Color_rgb));
 
     const uint8_t* start_iterator = pcx_memory + sizeof(PCX_header);
     const uint8_t* end_iterator = palette != nullptr ? reinterpret_cast<const uint8_t*>(palette) - 1 : start_iterator + size;

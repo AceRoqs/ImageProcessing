@@ -6,13 +6,6 @@
 namespace ImageProcessing
 {
 
-Bitmap::Bitmap() :
-    xsize(0),
-    ysize(0),
-    filtered(false)
-{
-}
-
 // This code is fine, but it is currently unused.
 #if 0
 static void generate_grid_texture_rgb(

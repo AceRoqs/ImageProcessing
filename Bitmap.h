@@ -7,7 +7,7 @@ namespace ImageProcessing
 #pragma pack(1)
 struct Color_rgb
 {
-    // Empty default constructor is used to prevent zero-init when creating a std::vector<ColorRGB>.
+    // Empty default constructor is used to prevent zero-init when creating a std::vector<Color_rgb>.
     // These vectors are used as write targets for reads from disk, where zero-init would be inefficient.
     Color_rgb() {}
 
@@ -19,12 +19,10 @@ struct Color_rgb
 
 struct Bitmap
 {
-    Bitmap();
-
-    std::vector<Color_rgb> bitmap;
-    unsigned int xsize;
-    unsigned int ysize;
-    bool filtered;
+    std::vector<uint8_t> bitmap;
+    unsigned int xsize = 0;
+    unsigned int ysize = 0;
+    bool filtered = false;
 };
 
 }
