@@ -2,6 +2,7 @@
 #include "targa.h"
 #include "Bitmap.h"
 #include <PortableRuntime/CheckException.h>
+#include <PortableRuntime/Tracing.h>
 
 // Targa spec:
 // http://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
@@ -142,7 +143,7 @@ static void validate_tga_header(_In_ const TGA_header* header)
     succeeded &= (header->image_width <= max_dimension);
     succeeded &= (header->image_height <= max_dimension);
 
-    // id_length is unbounded.
+    // id_length (uint8_t) is unbounded.
 
     CHECK_EXCEPTION(succeeded, u8"Image data is invalid.");
 }
@@ -176,7 +177,7 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
     CHECK_EXCEPTION(reinterpret_cast<const uint8_t*>(pixel_start + (pixel_count * pixel_size)) <= (tga_memory + size), u8"Image data is invalid.");
 
     // MSVC complains that std::copy is insecure.
-    // _SCL_SECURE_NO_WARNINGS or checked iterator required.
+    // _SCL_SECURE_NO_WARNINGS or checked iterator required. TODO: 2016: Consider using _SCL_SECURE_NO_WARNINGS only in release.
     bitmap.bitmap.resize(pixel_count * pixel_size);
     if(is_top_to_bottom(header->image_descriptor))
     {
@@ -184,7 +185,11 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
     }
     else
     {
-        // TODO: 2014: It would be good to log this, as bottom to top is inefficient for content.
+        // If this code path is hit, it means that the image should be exported from the content creation tool
+        // from top to bottom.
+        // TODO: 2016: To encourage this, make such a tool available from the ImageProcessing library.
+        // TODO: 2016: Warnings should do a MessageBeep.  Consider ^ as the control character.
+        PortableRuntime::dprintf("Warning: Copying Targa image bottom to top. Use content that is encoded from top to bottom for best performance.");
 
         const auto row_length = pixel_count / header->image_height;
         for(decltype(header->image_height) iy = 0; iy < header->image_height; ++iy)
