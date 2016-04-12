@@ -188,8 +188,7 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
         // If this code path is hit, it means that the image should be exported from the content creation tool
         // from top to bottom.
         // TODO: 2016: To encourage this, make such a tool available from the ImageProcessing library.
-        // TODO: 2016: Warnings should do a MessageBeep.  Consider ^ as the control character.
-        PortableRuntime::dprintf("Warning: Copying Targa image bottom to top. Use content that is encoded from top to bottom for best performance.");
+        PortableRuntime::dprintf("^Copying Targa image bottom to top. Use content that is encoded from top to bottom for best performance.");
 
         const auto row_length = pixel_count / header->image_height;
         for(decltype(header->image_height) iy = 0; iy < header->image_height; ++iy)
