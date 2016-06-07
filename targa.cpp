@@ -181,7 +181,7 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
     bitmap.bitmap.resize(pixel_count * pixel_size);
     if(is_top_to_bottom(header->image_descriptor))
     {
-        std::copy(pixel_start, pixel_start + (pixel_count * pixel_size), &bitmap.bitmap[0]);
+        std::copy(pixel_start, pixel_start + (pixel_count * pixel_size), bitmap.bitmap.data());
     }
     else
     {
@@ -211,7 +211,7 @@ std::vector<uint8_t> encode_tga_from_bitmap(const Bitmap& bitmap)
 
     std::vector<uint8_t> tga(sizeof(TGA_header) + bitmap.bitmap.size() * sizeof(Color_rgb));
 
-    TGA_header* header = reinterpret_cast<TGA_header*>(&tga[0]);
+    TGA_header* header = reinterpret_cast<TGA_header*>(tga.data());
     header->color_map_type = TGA_color_map::Has_no_color_map;
     header->image_type = TGA_image_type::True_color;
     header->image_width = static_cast<decltype(header->image_width)>(bitmap.xsize);
@@ -219,7 +219,7 @@ std::vector<uint8_t> encode_tga_from_bitmap(const Bitmap& bitmap)
     header->bits_per_pixel = sizeof(Color_rgb) * 8;
     header->image_descriptor |= top_to_bottom_bit();
 
-    const auto pixel_start = reinterpret_cast<const uint8_t*>(&bitmap.bitmap[0]);
+    const auto pixel_start = reinterpret_cast<const uint8_t*>(bitmap.bitmap.data());
     std::copy(pixel_start, pixel_start + bitmap.bitmap.size() * sizeof(Color_rgb), &tga[sizeof(TGA_header)]);
 
     // Return value optimization expected.

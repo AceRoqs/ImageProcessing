@@ -157,7 +157,7 @@ Bitmap decode_bitmap_from_pcx_memory(_In_reads_(size) const uint8_t* pcx_memory,
     const uint8_t* start_iterator = pcx_memory + sizeof(PCX_header);
     const uint8_t* end_iterator = palette != nullptr ? reinterpret_cast<const uint8_t*>(palette) - 1 : start_iterator + size;
 
-    pcx_decode(start_iterator, end_iterator, &bitmap.bitmap[0], &bitmap.bitmap[0] + bitmap.bitmap.size(), palette);
+    pcx_decode(start_iterator, end_iterator, bitmap.bitmap.data(), bitmap.bitmap.data() + bitmap.bitmap.size(), palette);
 
     // Return value optimization expected.
     return bitmap;
