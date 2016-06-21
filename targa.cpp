@@ -162,11 +162,6 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
     const TGA_header* header = reinterpret_cast<const TGA_header*>(tga_memory);
     validate_tga_header(header);
 
-    Bitmap bitmap;
-    bitmap.xsize = header->image_width;
-    bitmap.ysize = header->image_height;
-    bitmap.filtered = true;
-
     // TODO: 2016: Validate no integer overflows from untrusted data.
     const size_t pixel_data_offset = get_pixel_data_offset(header);
     const auto pixel_size = sizeof(Color_rgb);
@@ -178,7 +173,7 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
 
     // MSVC complains that std::copy is insecure.
     // _SCL_SECURE_NO_WARNINGS or checked iterator required. TODO: 2016: Consider using _SCL_SECURE_NO_WARNINGS only in release.
-    bitmap.bitmap.resize(pixel_count * pixel_size);
+    Bitmap bitmap{std::vector<uint8_t>(pixel_count * pixel_size), header->image_width, header->image_height, true};
     if(is_top_to_bottom(header->image_descriptor))
     {
         std::copy(pixel_start, pixel_start + (pixel_count * pixel_size), bitmap.bitmap.data());

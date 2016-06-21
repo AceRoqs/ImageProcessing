@@ -20,9 +20,9 @@ struct Color_rgb
 struct Bitmap
 {
     std::vector<uint8_t> bitmap;
-    unsigned int xsize = 0;
-    unsigned int ysize = 0;
-    bool filtered = false;
+    unsigned int xsize;
+    unsigned int ysize;
+    bool filtered;
 };
 
 }
