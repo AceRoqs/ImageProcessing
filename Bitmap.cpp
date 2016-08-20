@@ -9,15 +9,15 @@ namespace ImageProcessing
 // This code is fine, but it is currently unused.
 #if 0
 static void generate_grid_texture_rgb(
-    _Out_writes_(xsize * ysize) uint8_t* bitmap,
-    unsigned int xsize,
-    unsigned int ysize) noexcept
+    _Out_writes_(width * height) uint8_t* bitmap,
+    unsigned int width,
+    unsigned int height) noexcept
 {
-    for(unsigned int iy = 0; iy < ysize; ++iy)
+    for(unsigned int iy = 0; iy < height; ++iy)
     {
-        for(unsigned int ix = 0; ix < xsize; ++ix)
+        for(unsigned int ix = 0; ix < width; ++ix)
         {
-            if((ix < (xsize / 2)) ^ (iy >= (ysize / 2)))
+            if((ix < (width / 2)) ^ (iy >= (height / 2)))
             {
                 bitmap[0] = 0xc0;
                 bitmap[1] = 0xc0;
@@ -36,33 +36,37 @@ static void generate_grid_texture_rgb(
 }
 #endif
 
-#if 0
-Bitmap resize_bitmap(const Bitmap& unscaled_bitmap, unsigned int xsize, unsigned int ysize)
+// Resamples and scales an image using a nearest neighbor algorithm.
+static void resize_bitmap_point_sampled_unchecked(const Color_rgb* unscaled_pixels, unsigned int unscaled_width, unsigned int unscaled_height,
+                                                  Color_rgb* scaled_pixels, unsigned int scaled_width, unsigned int scaled_height) noexcept
 {
-    Bitmap scaled_bitmap{std::vector<uint8_t>(xsize * ysize * sizeof(Color_rgb)), xsize, ysize, true};
-
-    for(unsigned int y_index = 0; y_index < ysize; ++y_index)
+    for(unsigned int scaled_y = 0; scaled_y < scaled_height; ++scaled_y)
     {
-        for(unsigned int x_index = 0; x_index < xsize; )
+        for(unsigned int scaled_x = 0; scaled_x < scaled_width; ++scaled_x)
         {
-            Color_rgb color;
+            unsigned int unscaled_x = unscaled_width * scaled_x / scaled_width;
+            unsigned int unscaled_y = unscaled_height * scaled_y / scaled_height;
 
-            // TODO: 2016: Point sample the unscaled_bitmap.
-            (void)unscaled_bitmap;
-            color.red = 255;
-            color.green = 255;
-            color.blue = 0;
+            assert(unscaled_x < unscaled_width);
+            assert(unscaled_y < unscaled_height);
 
-            scaled_bitmap.bitmap[y_index * ysize + x_index + 0] = color.red;
-            scaled_bitmap.bitmap[y_index * ysize + x_index + 1] = color.green;
-            scaled_bitmap.bitmap[y_index * ysize + x_index + 2] = color.blue;
-            x_index += sizeof(Color_rgb);
+            const Color_rgb color = unscaled_pixels[unscaled_y * unscaled_width + unscaled_x];
+            scaled_pixels[scaled_y * scaled_width + scaled_x] = color;
         }
     }
+}
+
+Bitmap resize_bitmap_point_sampled(const Bitmap& unscaled_bitmap, unsigned int scaled_width, unsigned int scaled_height)
+{
+    Bitmap scaled_bitmap{std::vector<uint8_t>(scaled_width * scaled_height * sizeof(Color_rgb)), scaled_width, scaled_height, true};
+
+    auto unscaled_pixels = reinterpret_cast<const Color_rgb*>(&unscaled_bitmap.bitmap[0]);
+    auto scaled_pixels = reinterpret_cast<Color_rgb*>(&scaled_bitmap.bitmap[0]);
+
+    resize_bitmap_point_sampled_unchecked(unscaled_pixels, unscaled_bitmap.width, unscaled_bitmap.height, scaled_pixels, scaled_width, scaled_height);
 
     return scaled_bitmap;
 }
-#endif
 
 }
 
