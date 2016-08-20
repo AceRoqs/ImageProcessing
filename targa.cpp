@@ -201,16 +201,16 @@ Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory,
 
 std::vector<uint8_t> encode_tga_from_bitmap(const Bitmap& bitmap)
 {
-    CHECK_EXCEPTION(bitmap.xsize <= max_dimension, u8"Image data is invalid.");
-    CHECK_EXCEPTION(bitmap.ysize <= max_dimension, u8"Image data is invalid.");
+    CHECK_EXCEPTION(bitmap.width <= max_dimension, u8"Image data is invalid.");
+    CHECK_EXCEPTION(bitmap.height <= max_dimension, u8"Image data is invalid.");
 
     std::vector<uint8_t> tga(sizeof(TGA_header) + bitmap.bitmap.size() * sizeof(Color_rgb));
 
     TGA_header* header = reinterpret_cast<TGA_header*>(tga.data());
     header->color_map_type = TGA_color_map::Has_no_color_map;
     header->image_type = TGA_image_type::True_color;
-    header->image_width = static_cast<decltype(header->image_width)>(bitmap.xsize);
-    header->image_height = static_cast<decltype(header->image_height)>(bitmap.ysize);
+    header->image_width = static_cast<decltype(header->image_width)>(bitmap.width);
+    header->image_height = static_cast<decltype(header->image_height)>(bitmap.height);
     header->bits_per_pixel = sizeof(Color_rgb) * 8;
     header->image_descriptor |= top_to_bottom_bit();
 

@@ -147,9 +147,9 @@ Bitmap decode_bitmap_from_pcx_memory(_In_reads_(size) const uint8_t* pcx_memory,
         CHECK_EXCEPTION(reinterpret_cast<const uint8_t*>(palette)[-1] == 0x0c, u8"Image data is invalid.");
     }
 
-    const auto xsize = static_cast<unsigned int>(header->max_x) - header->min_x + 1;
-    const auto ysize = static_cast<unsigned int>(header->max_y) - header->min_y + 1;
-    Bitmap bitmap{std::vector<uint8_t>(xsize * ysize * sizeof(Color_rgb)), xsize, ysize, true};
+    const auto image_width = static_cast<unsigned int>(header->max_x) - header->min_x + 1;
+    const auto image_height = static_cast<unsigned int>(header->max_y) - header->min_y + 1;
+    Bitmap bitmap{std::vector<uint8_t>(image_width * image_height * sizeof(Color_rgb)), image_width, image_height, true};
 
     const uint8_t* start_iterator = pcx_memory + sizeof(PCX_header);
     const uint8_t* end_iterator = palette != nullptr ? reinterpret_cast<const uint8_t*>(palette) - 1 : start_iterator + size;
