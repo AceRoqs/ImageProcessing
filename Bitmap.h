@@ -25,5 +25,7 @@ struct Bitmap
     bool filtered;
 };
 
+Bitmap resize_bitmap_point_sampled(const Bitmap& unscaled_bitmap, unsigned int scaled_width, unsigned int scaled_height);
+
 }
 
