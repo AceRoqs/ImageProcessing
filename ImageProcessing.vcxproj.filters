@@ -23,6 +23,9 @@
     <ClCompile Include="targa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PixMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bitmap.h">

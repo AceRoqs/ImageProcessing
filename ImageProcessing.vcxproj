@@ -56,6 +56,7 @@
     <ClInclude Include="targa.h" />
     <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="pcx.cpp" />
+    <ClCompile Include="PixMap.cpp" />
     <ClCompile Include="PreCompile.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
