@@ -22,26 +22,6 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     return false;
 }
 
-static size_t count_characters(_In_reads_(size) const char* scan_location, size_t size, const std::function<bool (char ch)>& predicate) noexcept
-{
-    size_t count = 0;
-
-    for(size_t ix = 0; ix < size; ++ix)
-    {
-        if(predicate(*scan_location))
-        {
-            ++count;
-            ++scan_location;
-        }
-        else
-        {
-            break;
-        }
-    }
-
-    return count;
-}
-
 class Tokenizer
 {
     const char* m_buffer_start;
@@ -55,17 +35,18 @@ public:
 
     void advance_past_whitespace() noexcept
     {
-        m_current_pointer += count_characters(m_current_pointer, m_buffer_end - m_current_pointer, is_ascii_whitespace_character);
+        m_current_pointer = std::find_if_not(m_current_pointer, m_buffer_end, is_ascii_whitespace_character);
     }
 
     std::string read_token()
     {
         CHECK_EXCEPTION(m_buffer_start != m_buffer_end, u8"Image data is invalid.");
-        const auto token_size = count_characters(m_current_pointer, m_buffer_end - m_current_pointer, [](char ch) -> bool { return !is_ascii_whitespace_character(ch); });
+        const auto token_end = std::find_if(m_current_pointer, m_buffer_end, is_ascii_whitespace_character);
 
         // TODO: 2016: What happens if string range has embedded null?
-        std::string token(m_current_pointer, token_size);
-        m_current_pointer += token_size;
+
+        std::string token(m_current_pointer, token_end - m_current_pointer);
+        m_current_pointer = token_end;
 
         return token;
     }
