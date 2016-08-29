@@ -57,12 +57,25 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     (void)pixmap_memory;
     (void)size;
 
+    // TODO: 2016: Support comments with the # identifier.
     Tokenizer tokenizer(reinterpret_cast<const char*>(pixmap_memory), size);
     tokenizer.advance_past_whitespace();
     const auto magic_number = tokenizer.read_token();
     CHECK_EXCEPTION(magic_number == u8"P3" || magic_number == u8"P6", u8"Image data is invalid.");
 
+    tokenizer.advance_past_whitespace();
+    const auto width = tokenizer.read_token();
+    tokenizer.advance_past_whitespace();
+    const auto height = tokenizer.read_token();
+    tokenizer.advance_past_whitespace();
+    const auto max_value = tokenizer.read_token();
+    (void)width;
+    (void)height;
+    (void)max_value;
+
     Bitmap bitmap{};
+    //bitmap.width = width;
+    //bitmap.height = height;
     return bitmap;
 }
 
