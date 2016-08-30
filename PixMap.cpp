@@ -69,13 +69,12 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     const auto height = tokenizer.read_token();
     tokenizer.advance_past_whitespace();
     const auto max_value = tokenizer.read_token();
-    (void)width;
-    (void)height;
     (void)max_value;
 
+
     Bitmap bitmap{};
-    //bitmap.width = width;
-    //bitmap.height = height;
+    bitmap.width = atoi(width.c_str());
+    bitmap.height = atoi(height.c_str());
     return bitmap;
 }
 
