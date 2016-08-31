@@ -9,6 +9,9 @@ namespace ImageProcessing
 {
 
 constexpr char whitespace[] = { u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' '};
+constexpr char whitespace_and_null[] = { u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' ', u8'\0'};
+constexpr char integers[] = { u8'0', u8'1', u8'2', u8'3', u8'4', u8'5', u8'6', u8'7', u8'8', u8'9'};
+
 static bool is_ascii_whitespace_character(char ch) noexcept
 {
     for(auto ix = 0u; ix < sizeof(whitespace); ++ix)
@@ -20,6 +23,56 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     }
 
     return false;
+}
+
+/*static*/ int parse_int(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** token_end, _Out_ bool* success) noexcept
+{
+    *success = false;
+    *token_end = buffer + size;
+
+    const char* token_begin = std::find_first_of(buffer, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null),
+        [](const char ch1, const char ch2)
+        {
+            return ch1 != ch2;
+        });
+
+    int result = 0;
+    if(token_begin != *token_end)
+    {
+        *token_end = std::find_first_of(token_begin, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null));
+
+        bool negate = false;
+        if(*token_begin == u8'-')
+        {
+            negate = true;
+            ++token_begin;
+        }
+
+        while(token_begin != *token_end)
+        {
+            constexpr char const* integers_end = integers + sizeof(integers);
+            if(std::find(integers, integers_end, *token_begin) == integers_end)
+            {
+                break;
+            }
+
+            result *= 10;
+            result += *token_begin - u8'0';
+            ++token_begin;
+        }
+
+        if(token_begin == *token_end)
+        {
+            if(negate)
+            {
+                result = -result;
+            }
+
+            *success = true;
+        }
+    }
+
+    return result;
 }
 
 class Tokenizer
@@ -70,7 +123,6 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     tokenizer.advance_past_whitespace();
     const auto max_value = tokenizer.read_token();
     (void)max_value;
-
 
     Bitmap bitmap{};
     bitmap.width = atoi(width.c_str());
