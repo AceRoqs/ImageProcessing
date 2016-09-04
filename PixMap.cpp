@@ -8,9 +8,9 @@
 namespace ImageProcessing
 {
 
-constexpr char whitespace[] = { u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' '};
-constexpr char whitespace_and_null[] = { u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' ', u8'\0'};
-constexpr char integers[] = { u8'0', u8'1', u8'2', u8'3', u8'4', u8'5', u8'6', u8'7', u8'8', u8'9'};
+constexpr char whitespace[] = {u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' '};
+constexpr char whitespace_and_null[] = {u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' ', u8'\0'};
+constexpr char integers[] = {u8'0', u8'1', u8'2', u8'3', u8'4', u8'5', u8'6', u8'7', u8'8', u8'9'};
 
 static bool is_ascii_whitespace_character(char ch) noexcept
 {
@@ -74,6 +74,55 @@ static bool is_ascii_whitespace_character(char ch) noexcept
                 result = -result;
             }
 
+            *success = true;
+        }
+    }
+
+    // If the parse was not successful, do not consume the buffer.
+    if(!*success)
+    {
+        *token_end = buffer;
+    }
+
+    return result;
+}
+
+/*static*/ std::string parse_string(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** token_end, _Out_ bool* success) noexcept
+{
+    *success = false;
+    *token_end = buffer + size;
+
+    // Beginning of token is the first non-whitespace character.
+    const char* token_begin = std::find_first_of(buffer, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null),
+        [](const char ch1, const char ch2)
+        {
+            return ch1 != ch2;
+        });
+
+    // Nothing to parse if the buffer is only whitespace.
+    std::string result;
+    if(token_begin != *token_end)
+    {
+        // The end of the token is the first whitespace character.
+        *token_end = std::find_first_of(token_begin, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null));
+
+        // Add the characters into a running sum, if they are digits.
+        while(token_begin != *token_end)
+        {
+            if(!((*token_begin >= u8'0' && *token_begin <= u8'9') ||
+                 (*token_begin >= u8'A' && *token_begin <= u8'Z') ||
+                 (*token_begin >= u8'a' && *token_begin <= u8'z')))
+            {
+                break;
+            }
+
+            result.append(token_begin, 1);
+            ++token_begin;
+        }
+
+        // If the token was fully consumed, then the token was successfully parsed.
+        if(token_begin == *token_end)
+        {
             *success = true;
         }
     }
