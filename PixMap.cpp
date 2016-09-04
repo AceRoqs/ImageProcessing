@@ -30,17 +30,21 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     *success = false;
     *token_end = buffer + size;
 
+    // Beginning of token is the first non-whitespace character.
     const char* token_begin = std::find_first_of(buffer, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null),
         [](const char ch1, const char ch2)
         {
             return ch1 != ch2;
         });
 
+    // Nothing to parse if the buffer is only whitespace.
     int result = 0;
     if(token_begin != *token_end)
     {
+        // The end of the token is the first whitespace character.
         *token_end = std::find_first_of(token_begin, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null));
 
+        // Check for negative sign.
         bool negate = false;
         if(*token_begin == u8'-')
         {
@@ -48,6 +52,7 @@ static bool is_ascii_whitespace_character(char ch) noexcept
             ++token_begin;
         }
 
+        // Add the characters into a running sum, if they are digits.
         while(token_begin != *token_end)
         {
             constexpr char const* integers_end = integers + sizeof(integers);
@@ -61,6 +66,7 @@ static bool is_ascii_whitespace_character(char ch) noexcept
             ++token_begin;
         }
 
+        // If the token was fully consumed, then the token was successfully parsed.
         if(token_begin == *token_end)
         {
             if(negate)
@@ -70,6 +76,12 @@ static bool is_ascii_whitespace_character(char ch) noexcept
 
             *success = true;
         }
+    }
+
+    // If the parse was not successful, do not consume the buffer.
+    if(!*success)
+    {
+        *token_end = buffer;
     }
 
     return result;
