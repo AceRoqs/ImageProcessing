@@ -171,7 +171,25 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     (void)pixmap_memory;
     (void)size;
 
+    // TODO: 2016: Support comment before the magic number
+    auto next_token = reinterpret_cast<const char*>(pixmap_memory);
+    bool success;
+    auto magic_number = parse_string(next_token, size, &next_token, &success);
+    CHECK_EXCEPTION(success, u8"Image data is invalid.");
+    CHECK_EXCEPTION(magic_number == u8"P3", u8"Image data is invalid.");
+
+    auto width = parse_int(next_token, size, &next_token, &success);
+    CHECK_EXCEPTION(success, u8"Image data is invalid.");
+
+    auto height = parse_int(next_token, size, &next_token, &success);
+    CHECK_EXCEPTION(success, u8"Image data is invalid.");
+
+    auto max_value = parse_int(next_token, size, &next_token, &success);
+    CHECK_EXCEPTION(success, u8"Image data is invalid.");
+    (void)max_value;
+
     // TODO: 2016: Support comments with the # identifier.
+#if 0
     Tokenizer tokenizer(reinterpret_cast<const char*>(pixmap_memory), size);
     tokenizer.advance_past_whitespace();
     const auto magic_number = tokenizer.read_token();
@@ -184,10 +202,11 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     tokenizer.advance_past_whitespace();
     const auto max_value = tokenizer.read_token();
     (void)max_value;
+#endif
 
     Bitmap bitmap{};
-    bitmap.width = atoi(width.c_str());
-    bitmap.height = atoi(height.c_str());
+    bitmap.width = width;
+    bitmap.height = height;
     return bitmap;
 }
 
