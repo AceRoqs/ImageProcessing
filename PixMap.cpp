@@ -87,7 +87,7 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     return result;
 }
 
-/*static*/ std::string parse_string(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** token_end, _Out_ bool* success) noexcept
+/*static*/ std::string parse_string(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** token_end, _Out_ bool* success)
 {
     *success = false;
     *token_end = buffer + size;
@@ -111,7 +111,8 @@ static bool is_ascii_whitespace_character(char ch) noexcept
         {
             if(!((*token_begin >= u8'0' && *token_begin <= u8'9') ||
                  (*token_begin >= u8'A' && *token_begin <= u8'Z') ||
-                 (*token_begin >= u8'a' && *token_begin <= u8'z')))
+                 (*token_begin >= u8'a' && *token_begin <= u8'z') ||
+                 (*token_begin == u8'#')))
             {
                 break;
             }
@@ -134,6 +135,40 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     }
 
     return result;
+}
+
+/*static*/ void advance_to_end_of_line(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** token_end, _Out_ bool* success) noexcept
+{
+    *token_end = buffer + size;
+    *success = false;
+    const char* token_begin = buffer;
+
+    for(size_t ix = 0; ix < size; ++ix)
+    {
+        if(token_begin[ix] == u8'\n')
+        {
+            *token_end = token_begin + ix + 1;
+            *success = true;
+            break;
+        }
+        else if(token_begin[ix] == u8'\r')
+        {
+            *token_end = token_begin + ix + 1;
+            *success = true;
+
+            // Eat the \n if the file has \r\n as the deliminator as on Windows.
+            ++ix;
+            if(ix < size)
+            {
+                if(token_begin[ix] == u8'\n')
+                {
+                    *token_end = token_begin + ix + 1;
+                }
+            }
+
+            break;
+        }
+    }
 }
 
 class Tokenizer
@@ -174,6 +209,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     // TODO: 2016: Support comment before the magic number
     auto next_token = reinterpret_cast<const char*>(pixmap_memory);
     bool success;
+
     auto magic_number = parse_string(next_token, size, &next_token, &success);
     CHECK_EXCEPTION(success, u8"Image data is invalid.");
     CHECK_EXCEPTION(magic_number == u8"P3", u8"Image data is invalid.");
