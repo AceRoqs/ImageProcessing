@@ -137,6 +137,37 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     return result;
 }
 
+/*static*/ void find_end_of_line(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** line_end) noexcept
+{
+    *line_end = buffer + size;
+    const char* line_begin = buffer;
+
+    for(size_t ix = 0; ix < size; ++ix)
+    {
+        if(line_begin[ix] == u8'\n')
+        {
+            *line_end = line_begin + ix + 1;
+            break;
+        }
+        else if(line_begin[ix] == u8'\r')
+        {
+            *line_end = line_begin + ix + 1;
+
+            // Eat the \n if the file has \r\n as the deliminator as on Windows.
+            ++ix;
+            if(ix < size)
+            {
+                if(line_begin[ix] == u8'\n')
+                {
+                    *line_end = line_begin + ix + 1;
+                }
+            }
+
+            break;
+        }
+    }
+}
+
 /*static*/ void advance_to_end_of_line(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** token_end, _Out_ bool* success) noexcept
 {
     *token_end = buffer + size;
