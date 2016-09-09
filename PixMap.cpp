@@ -202,35 +202,10 @@ static bool is_ascii_whitespace_character(char ch) noexcept
     }
 }
 
-class Tokenizer
+void advance_past_whitespace(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** next_token) noexcept
 {
-    const char* m_buffer_start;
-    const char* m_current_pointer;
-    const char* m_buffer_end;
-
-public:
-    Tokenizer(_In_reads_(size) const char* buffer, size_t size) noexcept : m_buffer_start(buffer), m_current_pointer(buffer), m_buffer_end(buffer + size)
-    {
-    }
-
-    void advance_past_whitespace() noexcept
-    {
-        m_current_pointer = std::find_if_not(m_current_pointer, m_buffer_end, is_ascii_whitespace_character);
-    }
-
-    std::string read_token()
-    {
-        CHECK_EXCEPTION(m_buffer_start != m_buffer_end, u8"Image data is invalid.");
-        const auto token_end = std::find_if(m_current_pointer, m_buffer_end, is_ascii_whitespace_character);
-
-        // TODO: 2016: What happens if string range has embedded null?
-
-        std::string token(m_current_pointer, token_end - m_current_pointer);
-        m_current_pointer = token_end;
-
-        return token;
-    }
-};
+     *next_token = std::find_if_not(buffer, buffer + size, is_ascii_whitespace_character);
+ }
 
 Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_memory, size_t size)
 {
@@ -254,22 +229,6 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     auto max_value = parse_int(next_token, size, &next_token, &success);
     CHECK_EXCEPTION(success, u8"Image data is invalid.");
     (void)max_value;
-
-    // TODO: 2016: Support comments with the # identifier.
-#if 0
-    Tokenizer tokenizer(reinterpret_cast<const char*>(pixmap_memory), size);
-    tokenizer.advance_past_whitespace();
-    const auto magic_number = tokenizer.read_token();
-    CHECK_EXCEPTION(magic_number == u8"P3" || magic_number == u8"P6", u8"Image data is invalid.");
-
-    tokenizer.advance_past_whitespace();
-    const auto width = tokenizer.read_token();
-    tokenizer.advance_past_whitespace();
-    const auto height = tokenizer.read_token();
-    tokenizer.advance_past_whitespace();
-    const auto max_value = tokenizer.read_token();
-    (void)max_value;
-#endif
 
     Bitmap bitmap{};
     bitmap.width = width;
