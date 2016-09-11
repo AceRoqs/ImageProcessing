@@ -30,12 +30,8 @@ static int parse_int(_In_reads_(size) const char* buffer, size_t size, _Out_ con
     *success = false;
     *token_end = buffer + size;
 
-    // Beginning of token is the first non-whitespace character.
-    const char* token_begin = std::find_first_of(buffer, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null),
-        [](const char ch1, const char ch2)
-        {
-            return ch1 != ch2;
-        });
+    // Buffer begins with no whitespace.
+    const char* token_begin = buffer;
 
     // Nothing to parse if the buffer is only whitespace.
     int result = 0;
@@ -92,12 +88,8 @@ static std::string parse_string(_In_reads_(size) const char* buffer, size_t size
     *success = false;
     *token_end = buffer + size;
 
-    // Beginning of token is the first non-whitespace character.
-    const char* token_begin = std::find_first_of(buffer, *token_end, whitespace_and_null, whitespace_and_null + sizeof(whitespace_and_null),
-        [](const char ch1, const char ch2)
-        {
-            return ch1 != ch2;
-        });
+    // Buffer begins with no whitespace.
+    const char* token_begin = buffer;
 
     // Nothing to parse if the buffer is only whitespace.
     std::string result;
@@ -177,7 +169,6 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             find_end_of_line(line_begin, buffer_end - line_begin, &line_end);
         }
 
-        // TODO: 2016: With this line, the parse functions can assume that the buffer they are given is the token start.
         // TODO: 2016: Normalize size vs buffer_end concept.
         advance_past_whitespace(line_begin, line_end - line_begin, &line_begin);
         if(line_begin != line_end)
