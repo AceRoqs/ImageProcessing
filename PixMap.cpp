@@ -139,32 +139,17 @@ static std::string parse_string(_In_reads_(size) const char* buffer, size_t size
 
 static void find_end_of_line(_In_reads_(size) const char* buffer, size_t size, _Out_ const char** line_end) noexcept
 {
-    *line_end = buffer + size;
-    const char* line_begin = buffer;
-
-    // TODO: 2016: Try to replace this with a call to std::find, and then a second step to check for \r\n.
-    for(size_t ix = 0; ix < size; ++ix)
+    constexpr char newlines[] = {u8'\r', u8'\n'};
+    *line_end = std::find_first_of(buffer, buffer + size, newlines, newlines + sizeof(newlines));
+    if(*line_end != buffer + size)
     {
-        if(line_begin[ix] == u8'\n')
-        {
-            *line_end = line_begin + ix + 1;
-            break;
-        }
-        else if(line_begin[ix] == u8'\r')
-        {
-            *line_end = line_begin + ix + 1;
+        ++(*line_end);
 
-            // Eat the \n if the file has \r\n as the deliminator as on Windows.
-            ++ix;
-            if(ix < size)
-            {
-                if(line_begin[ix] == u8'\n')
-                {
-                    *line_end = line_begin + ix + 1;
-                }
-            }
-
-            break;
+        // Eat the \n if the file has \r\n as the delimiter as on Windows.
+        // NOTE: This will also eat \n\n, which is an optimization in scenarios of concern.
+        if(**line_end == u8'\n')
+        {
+            ++(*line_end);
         }
     }
 }
@@ -210,26 +195,28 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 // TODO: Support P1-P6.  Skip P7.
                 mode = Parse_mode::width;
             }
-            else if(mode == Parse_mode::width)
+            else if((mode == Parse_mode::width) ||
+                    (mode == Parse_mode::height) ||
+                    (mode == Parse_mode::max_value))
             {
-                width = parse_int(line_begin, line_end - line_begin, &line_begin, &success);
+                const int token = parse_int(line_begin, line_end - line_begin, &line_begin, &success);
                 CHECK_EXCEPTION(success, u8"Image data is invalid.");
 
-                mode = Parse_mode::height;
-            }
-            else if(mode == Parse_mode::height)
-            {
-                height = parse_int(line_begin, line_end - line_begin, &line_begin, &success);
-                CHECK_EXCEPTION(success, u8"Image data is invalid.");
-
-                mode = Parse_mode::max_value;
-            }
-            else if(mode == Parse_mode::max_value)
-            {
-                max_value = parse_int(line_begin, line_end - line_begin, &line_begin, &success);
-                CHECK_EXCEPTION(success, u8"Image data is invalid.");
-
-                mode = Parse_mode::data;
+                if(mode == Parse_mode::width)
+                {
+                    width = token;
+                    mode = Parse_mode::height;
+                }
+                else if(mode == Parse_mode::height)
+                {
+                    height = token;
+                    mode = Parse_mode::max_value;
+                }
+                else
+                {
+                    max_value = token;
+                    mode = Parse_mode::data;
+                }
             }
             else if(mode == Parse_mode::data)
             {
