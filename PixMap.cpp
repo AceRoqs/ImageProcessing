@@ -1,5 +1,5 @@
 #include "PreCompile.h"
-//#include "PixMap.h"
+#include "PixMap.h"             // Pick up forward declarations to ensure correctness.
 #include "Bitmap.h"
 #include <PortableRuntime/CheckException.h>
 

@@ -40,5 +40,8 @@
     <ClInclude Include="targa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PixMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

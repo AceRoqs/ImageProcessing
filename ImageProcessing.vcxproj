@@ -52,6 +52,7 @@
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="pcx.h" />
+    <ClInclude Include="PixMap.h" />
     <ClInclude Include="PreCompile.h" />
     <ClInclude Include="targa.h" />
     <ClCompile Include="Bitmap.cpp" />
