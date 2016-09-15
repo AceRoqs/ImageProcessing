@@ -29,22 +29,20 @@ static bool is_valid_integer_character(char ch) noexcept
     return (ch >= u8'0') && (ch <= u8'9');
 }
 
-// TODO: 2016: When parsing, don't update token_end unless successful.
-
-static int parse_int32(_In_reads_to_ptr_(buffer_end) const char* buffer_start, const char* buffer_end, _Out_ const char** token_end, _Out_ bool* success) noexcept
+static int parse_int32(_In_reads_to_ptr_(buffer_end) const char* buffer_start, const char* buffer_end, _Out_ const char** next_start, _Out_ bool* success) noexcept
 {
     *success = false;
 
     // Buffer begins with no whitespace.
     const char* token_begin = buffer_start;
-    *token_end = buffer_end;
+    const char* token_end = buffer_end;
 
     // Nothing to parse if the buffer is empty.
     int result = 0;
-    if(token_begin != *token_end)
+    if(token_begin != token_end)
     {
         // The end of the token is the first whitespace character.
-        *token_end = std::find_first_of(token_begin, *token_end, whitespace, whitespace + sizeof(whitespace));
+        token_end = std::find_first_of(token_begin, token_end, whitespace, whitespace + sizeof(whitespace));
 
         // Check for negative sign.
         bool negate = false;
@@ -55,7 +53,7 @@ static int parse_int32(_In_reads_to_ptr_(buffer_end) const char* buffer_start, c
         }
 
         // Add the characters into a running sum, if they are digits.
-        while((token_begin != *token_end) && is_valid_integer_character(*token_begin))
+        while((token_begin != token_end) && is_valid_integer_character(*token_begin))
         {
             // TODO: 2016: Currently, parse_int32 does not support accepting INT_MIN (-2147483648) as an input.
             if(result > (INT_MAX - (*token_begin - u8'0')) / 10)
@@ -70,7 +68,7 @@ static int parse_int32(_In_reads_to_ptr_(buffer_end) const char* buffer_start, c
         }
 
         // If the token was fully consumed, then the token was successfully parsed.
-        if(token_begin == *token_end)
+        if(token_begin == token_end)
         {
             if(negate)
             {
@@ -82,48 +80,42 @@ static int parse_int32(_In_reads_to_ptr_(buffer_end) const char* buffer_start, c
     }
 
     // If the parse was not successful, do not consume the buffer.
-    if(!*success)
-    {
-        *token_end = buffer_start;
-    }
+    *next_start = *success ? token_end : buffer_start;
 
     return result;
 }
 
-static std::string parse_string(_In_reads_to_ptr_(buffer_end) const char* buffer_start, const char* buffer_end, _Out_ const char** token_end, _Out_ bool* success)
+static std::string parse_string(_In_reads_to_ptr_(buffer_end) const char* buffer_start, const char* buffer_end, _Out_ const char** next_start, _Out_ bool* success)
 {
     *success = false;
 
     // Buffer begins with no whitespace.
     const char* token_begin = buffer_start;
-    *token_end = buffer_end;
+    const char* token_end = buffer_end;
 
     // Nothing to parse if the buffer is empty.
     std::string result;
-    if(token_begin != *token_end)
+    if(token_begin != token_end)
     {
         // The end of the token is the first whitespace character.
-        *token_end = std::find_first_of(token_begin, *token_end, whitespace, whitespace + sizeof(whitespace));
+        token_end = std::find_first_of(token_begin, token_end, whitespace, whitespace + sizeof(whitespace));
 
         // Add the characters into the result buffer.
-        while((token_begin != *token_end) && is_valid_token_character(*token_begin))
+        while((token_begin != token_end) && is_valid_token_character(*token_begin))
         {
             result.append(token_begin, 1);
             ++token_begin;
         }
 
         // If the token was fully consumed, then the token was successfully parsed.
-        if(token_begin == *token_end)
+        if(token_begin == token_end)
         {
             *success = true;
         }
     }
 
     // If the parse was not successful, do not consume the buffer.
-    if(!*success)
-    {
-        *token_end = buffer_start;
-    }
+    *next_start = *success ? token_end : buffer_start;
 
     return result;
 }
