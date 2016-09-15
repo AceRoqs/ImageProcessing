@@ -153,6 +153,8 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     enum class Parse_mode {magic, width, height, max_value, data};
     Parse_mode mode = Parse_mode::magic;
 
+    enum class PixMap_format {P1, P2, P3, P4, P5, P6};
+
     while(line_begin != buffer_end)
     {
         if(line_begin == line_end)
@@ -201,6 +203,8 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             }
             else if(mode == Parse_mode::data)
             {
+                std::vector<uint8_t> data;
+                data.resize(image_width * image_height * sizeof(Color_rgb));
                 // TODO:
             }
         }
