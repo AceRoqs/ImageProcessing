@@ -154,6 +154,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     Parse_mode mode = Parse_mode::magic;
 
     enum class PixMap_format {P1, P2, P3, P4, P5, P6};
+    PixMap_format format = PixMap_format::P1;
 
     while(line_begin != buffer_end)
     {
@@ -174,8 +175,38 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             {
                 const auto token = parse_string(line_begin, line_end, &line_begin, &success);
                 CHECK_EXCEPTION(success, u8"Image data is invalid.");
-                CHECK_EXCEPTION(token == u8"P3", u8"Image data is invalid.");
-                // TODO: Support P1-P6.  Skip P7.
+                CHECK_EXCEPTION((token == u8"P1") ||
+                                (token == u8"P2") ||
+                                (token == u8"P3") ||
+                                (token == u8"P4") ||
+                                (token == u8"P5") ||
+                                (token == u8"P6"), u8"Image data is invalid.");
+                if(token == u8"P1")
+                {
+                    format = PixMap_format::P1;
+                }
+                else if(token == u8"P2")
+                {
+                    format = PixMap_format::P2;
+                }
+                else if(token == u8"P3")
+                {
+                    format = PixMap_format::P3;
+                }
+                else if(token == u8"P4")
+                {
+                    format = PixMap_format::P4;
+                }
+                else if(token == u8"P5")
+                {
+                    format = PixMap_format::P5;
+                }
+                else
+                {
+                    assert(token == u8"P6");
+                    format = PixMap_format::P6;
+                }
+
                 mode = Parse_mode::width;
             }
             else if((mode == Parse_mode::width) ||
@@ -205,7 +236,20 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             {
                 std::vector<uint8_t> data;
                 data.resize(image_width * image_height * sizeof(Color_rgb));
-                // TODO:
+
+                switch(format)
+                {
+                    case PixMap_format::P1:
+                    case PixMap_format::P2:
+                    case PixMap_format::P3:
+                    case PixMap_format::P4:
+                    case PixMap_format::P5:
+                    case PixMap_format::P6:
+                    {
+                        // TODO:
+                        break;
+                    }
+                }
             }
         }
     }
