@@ -228,6 +228,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 }
                 else
                 {
+                    // TODO: 2016: Bound the max value based on format.
                     image_max_value = token;
                     mode = Parse_mode::data;
                 }
@@ -235,13 +236,45 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             else if(mode == Parse_mode::data)
             {
                 std::vector<uint8_t> data;
-                data.resize(image_width * image_height * sizeof(Color_rgb));
+                data.reserve(image_width * image_height * sizeof(Color_rgb));
 
                 switch(format)
                 {
                     case PixMap_format::P1:
                     case PixMap_format::P2:
+                    {
+                        break;
+                    }
+
                     case PixMap_format::P3:
+                    {
+                        // TODO: 2016: Set up read pointers.
+                        // TODO: 2016: Allow comments.
+                        for(size_t ix = 0; ix < image_width * image_height; ++ix)
+                        {
+                            // Red.
+                            int token = parse_int32(line_begin, line_end, &line_begin, &success);
+                            CHECK_EXCEPTION(success, u8"Image data is invalid.");
+                            CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
+                            data.push_back(static_cast<uint8_t>(token));
+
+                            // Green.
+                            token = parse_int32(line_begin, line_end, &line_begin, &success);
+                            CHECK_EXCEPTION(success, u8"Image data is invalid.");
+                            CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
+                            data.push_back(static_cast<uint8_t>(token));
+
+                            // Blue.
+                            token = parse_int32(line_begin, line_end, &line_begin, &success);
+                            CHECK_EXCEPTION(success, u8"Image data is invalid.");
+                            CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
+                            data.push_back(static_cast<uint8_t>(token));
+                        }
+
+                        // TODO: 2016: Figure out termination condition.
+                        break;
+                    }
+
                     case PixMap_format::P4:
                     case PixMap_format::P5:
                     case PixMap_format::P6:
