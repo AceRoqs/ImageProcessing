@@ -156,6 +156,8 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     enum class PixMap_format {P1, P2, P3, P4, P5, P6};
     PixMap_format format = PixMap_format::P1;
 
+    std::vector<uint8_t> data;
+
     while(line_begin != buffer_end)
     {
         if(line_begin == line_end)
@@ -231,57 +233,47 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                     // TODO: 2016: Bound the max value based on format.
                     image_max_value = token;
                     mode = Parse_mode::data;
+
+                    data.reserve(image_width * image_height * sizeof(Color_rgb));
                 }
             }
             else if(mode == Parse_mode::data)
             {
-                std::vector<uint8_t> data;
-                data.reserve(image_width * image_height * sizeof(Color_rgb));
-
-                switch(format)
+                if((format == PixMap_format::P1) ||
+                   (format == PixMap_format::P2) ||
+                   (format == PixMap_format::P3))
                 {
-                    case PixMap_format::P1:
-                    case PixMap_format::P2:
+                    int token = parse_int32(line_begin, line_end, &line_begin, &success);
+                    CHECK_EXCEPTION(success, u8"Image data is invalid.");
+                    CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
+
+                    if(format == PixMap_format::P1)
                     {
-                        break;
+                        // Black and white.
+                        CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
+                        data.push_back(static_cast<uint8_t>(token * 255));
+                        data.push_back(static_cast<uint8_t>(token * 255));
+                        data.push_back(static_cast<uint8_t>(token * 255));
                     }
-
-                    case PixMap_format::P3:
+                    else if(format == PixMap_format::P2)
                     {
-                        // TODO: 2016: Set up read pointers.
-                        // TODO: 2016: Allow comments.
-                        for(size_t ix = 0; ix < image_width * image_height; ++ix)
-                        {
-                            // Red.
-                            int token = parse_int32(line_begin, line_end, &line_begin, &success);
-                            CHECK_EXCEPTION(success, u8"Image data is invalid.");
-                            CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
-                            data.push_back(static_cast<uint8_t>(token));
-
-                            // Green.
-                            token = parse_int32(line_begin, line_end, &line_begin, &success);
-                            CHECK_EXCEPTION(success, u8"Image data is invalid.");
-                            CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
-                            data.push_back(static_cast<uint8_t>(token));
-
-                            // Blue.
-                            token = parse_int32(line_begin, line_end, &line_begin, &success);
-                            CHECK_EXCEPTION(success, u8"Image data is invalid.");
-                            CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
-                            data.push_back(static_cast<uint8_t>(token));
-                        }
-
-                        // TODO: 2016: Figure out termination condition.
-                        break;
+                        // Grayscale.
+                        CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
+                        data.push_back(static_cast<uint8_t>(token));
+                        data.push_back(static_cast<uint8_t>(token));
+                        data.push_back(static_cast<uint8_t>(token));
                     }
-
-                    case PixMap_format::P4:
-                    case PixMap_format::P5:
-                    case PixMap_format::P6:
+                    else
                     {
-                        // TODO:
-                        break;
+                        // RGB.
+                        assert(format == PixMap_format::P3);
+                        CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb)), u8"Image data is invalid.");
+                        data.push_back(static_cast<uint8_t>(token));
                     }
+                }
+                else
+                {
+                    // TODO: 2016: P4/P5/P6.
                 }
             }
         }
