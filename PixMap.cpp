@@ -8,6 +8,8 @@
 namespace ImageProcessing
 {
 
+enum class PixMap_format {P1, P2, P3, P4, P5, P6};
+
 constexpr char whitespace[] = {u8'\t', u8'\n', u8'\v', u8'\f', u8'\r', u8' '};
 
 static bool is_ascii_whitespace_character(char ch) noexcept
@@ -142,6 +144,45 @@ static void find_first_token_begin(_In_reads_to_ptr_(buffer_end) const char* buf
      *token_begin = std::find_if_not(buffer_start, buffer_end, is_ascii_whitespace_character);
  }
 
+static PixMap_format pixmap_format_from_string(const std::string& value)
+{
+    CHECK_EXCEPTION((value == u8"P1") ||
+                    (value == u8"P2") ||
+                    (value == u8"P3") ||
+                    (value == u8"P4") ||
+                    (value == u8"P5") ||
+                    (value == u8"P6"), u8"Image data is invalid.");
+
+    PixMap_format format;
+    if(value == u8"P1")
+    {
+        format = PixMap_format::P1;
+    }
+    else if(value == u8"P2")
+    {
+        format = PixMap_format::P2;
+    }
+    else if(value == u8"P3")
+    {
+        format = PixMap_format::P3;
+    }
+    else if(value == u8"P4")
+    {
+        format = PixMap_format::P4;
+    }
+    else if(value == u8"P5")
+    {
+        format = PixMap_format::P5;
+    }
+    else
+    {
+        assert(value == u8"P6");
+        format = PixMap_format::P6;
+    }
+
+    return format;
+}
+
 Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_memory, size_t size)
 {
     const char* line_begin = reinterpret_cast<const char*>(pixmap_memory);
@@ -153,7 +194,6 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     enum class Parse_mode {magic, width, height, max_value, data};
     Parse_mode mode = Parse_mode::magic;
 
-    enum class PixMap_format {P1, P2, P3, P4, P5, P6};
     PixMap_format format = PixMap_format::P1;
 
     std::vector<uint8_t> data;
@@ -177,38 +217,8 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             {
                 const auto token = parse_string(line_begin, line_end, &line_begin, &success);
                 CHECK_EXCEPTION(success, u8"Image data is invalid.");
-                CHECK_EXCEPTION((token == u8"P1") ||
-                                (token == u8"P2") ||
-                                (token == u8"P3") ||
-                                (token == u8"P4") ||
-                                (token == u8"P5") ||
-                                (token == u8"P6"), u8"Image data is invalid.");
-                if(token == u8"P1")
-                {
-                    format = PixMap_format::P1;
-                }
-                else if(token == u8"P2")
-                {
-                    format = PixMap_format::P2;
-                }
-                else if(token == u8"P3")
-                {
-                    format = PixMap_format::P3;
-                }
-                else if(token == u8"P4")
-                {
-                    format = PixMap_format::P4;
-                }
-                else if(token == u8"P5")
-                {
-                    format = PixMap_format::P5;
-                }
-                else
-                {
-                    assert(token == u8"P6");
-                    format = PixMap_format::P6;
-                }
 
+                format = pixmap_format_from_string(token);
                 mode = Parse_mode::width;
             }
             else if((mode == Parse_mode::width) ||
