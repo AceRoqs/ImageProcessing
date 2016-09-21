@@ -205,7 +205,17 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             find_first_line_end(line_begin, buffer_end, &line_end);
         }
 
-        find_first_token_begin(line_begin, line_end, &line_begin);
+        if((mode != Parse_mode::data) || (format == PixMap_format::P1) || (format == PixMap_format::P2) || (format == PixMap_format::P3))
+        {
+            find_first_token_begin(line_begin, line_end, &line_begin);
+        }
+        else
+        {
+            // P4/P5/P6 data.
+            find_first_line_end(line_begin, buffer_end, &line_begin);
+            line_end = buffer_end;
+        }
+
         if(line_begin != line_end)
         {
             bool success;
@@ -288,6 +298,8 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
             }
         }
     }
+
+    // TODO:2016: Ensure all steps were completed and that a complete bitmap was made before doing the assignment here.
 
     Bitmap bitmap{};
     bitmap.width = image_width;
