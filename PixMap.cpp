@@ -246,7 +246,14 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 else if(mode == Parse_mode::height)
                 {
                     image_height = token;
-                    mode = Parse_mode::max_value;
+                    if((format == PixMap_format::P1) || (format == PixMap_format::P4))
+                    {
+                        mode = Parse_mode::data;
+                    }
+                    else
+                    {
+                        mode = Parse_mode::max_value;
+                    }
                 }
                 else
                 {
@@ -279,6 +286,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                     {
                         // Grayscale.
                         CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
+
                         data.push_back(static_cast<uint8_t>(token));
                         data.push_back(static_cast<uint8_t>(token));
                         data.push_back(static_cast<uint8_t>(token));
@@ -295,9 +303,11 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 {
                     if(format == PixMap_format::P4)
                     {
+                        // TODO:
                     }
                     else if(format == PixMap_format::P5)
                     {
+                        // TODO:
                     }
                     else
                     {
