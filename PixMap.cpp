@@ -293,7 +293,24 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 }
                 else
                 {
-                    // TODO: 2016: P4/P5/P6.
+                    if(format == PixMap_format::P4)
+                    {
+                    }
+                    else if(format == PixMap_format::P5)
+                    {
+                    }
+                    else
+                    {
+                        assert(format == PixMap_format::P6);
+                        CHECK_EXCEPTION(line_end == (line_begin + (image_width * image_height * sizeof(Color_rgb))), u8"Image data is invalid.");
+
+                        std::copy_if(line_begin, line_end, std::back_inserter(data), [image_max_value](const uint8_t& value) -> bool
+                        {
+                            CHECK_EXCEPTION(value < image_max_value, u8"Image data is invalid");
+                            return true;
+                        });
+                        line_begin = line_end;
+                    }
                 }
             }
         }
