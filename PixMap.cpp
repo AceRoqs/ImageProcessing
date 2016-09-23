@@ -189,7 +189,8 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     const char* line_end = line_begin;
     const char* buffer_end = line_begin + size;
 
-    int image_width = 0, image_height = 0, image_max_value;
+    int image_width = 0, image_height = 0;
+    uint8_t image_max_value = 1;
 
     enum class Parse_mode {magic, width, height, max_value, data};
     Parse_mode mode = Parse_mode::magic;
@@ -254,14 +255,14 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                     {
                         mode = Parse_mode::max_value;
                     }
+
+                    data.reserve(image_width * image_height * sizeof(Color_rgb));
                 }
                 else
                 {
-                    // TODO: 2016: Bound the max value based on format.
-                    image_max_value = token;
+                    CHECK_EXCEPTION((token >= 0) && (token <= 255), u8"Image data is invalid.");
+                    image_max_value = static_cast<uint8_t>(token);
                     mode = Parse_mode::data;
-
-                    data.reserve(image_width * image_height * sizeof(Color_rgb));
                 }
             }
             else if(mode == Parse_mode::data)
@@ -274,22 +275,18 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                     CHECK_EXCEPTION(success, u8"Image data is invalid.");
                     CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
 
-                    if(format == PixMap_format::P1)
+                    if((format == PixMap_format::P1) ||
+                       (format == PixMap_format::P2))
                     {
-                        // Black and white.
-                        CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
-                        data.push_back(static_cast<uint8_t>(token * 255));
-                        data.push_back(static_cast<uint8_t>(token * 255));
-                        data.push_back(static_cast<uint8_t>(token * 255));
-                    }
-                    else if(format == PixMap_format::P2)
-                    {
-                        // Grayscale.
+                        // Black and white / Grayscale.
                         CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
 
-                        data.push_back(static_cast<uint8_t>(token));
-                        data.push_back(static_cast<uint8_t>(token));
-                        data.push_back(static_cast<uint8_t>(token));
+                        const uint8_t scale = 255 / image_max_value;
+
+                        // P1/P2 only specifies a single channel.  Expand to three channels here (R/G/B).
+                        data.push_back(static_cast<uint8_t>(token) * scale);
+                        data.push_back(static_cast<uint8_t>(token) * scale);
+                        data.push_back(static_cast<uint8_t>(token) * scale);
                     }
                     else
                     {
