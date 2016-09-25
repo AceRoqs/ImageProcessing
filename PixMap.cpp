@@ -300,7 +300,16 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 {
                     if(format == PixMap_format::P4)
                     {
-                        // TODO:
+                        CHECK_EXCEPTION(line_end == (line_begin + (image_width * image_height)), u8"Image data is invalid.");
+
+                        std::for_each(line_begin, line_end, [image_max_value, &data](const uint8_t& value)
+                        {
+                            CHECK_EXCEPTION(value < image_max_value, u8"Image data is invalid");
+
+                            data.push_back(value * 255);
+                            data.push_back(value * 255);
+                            data.push_back(value * 255);
+                        });
                     }
                     else if(format == PixMap_format::P5)
                     {
@@ -316,8 +325,9 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                             CHECK_EXCEPTION(value < image_max_value, u8"Image data is invalid");
                             return true;
                         });
-                        line_begin = line_end;
                     }
+
+                    line_begin = line_end;
                 }
             }
         }
