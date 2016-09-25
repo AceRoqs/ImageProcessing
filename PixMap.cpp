@@ -260,7 +260,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 }
                 else
                 {
-                    CHECK_EXCEPTION((token >= 0) && (token <= 255), u8"Image data is invalid.");
+                    CHECK_EXCEPTION((token > 0) && (token <= 255), u8"Image data is invalid.");
                     image_max_value = static_cast<uint8_t>(token);
                     mode = Parse_mode::data;
                 }
