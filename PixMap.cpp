@@ -337,10 +337,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
     // Ensure that the bitmap data has been fully populated.
     CHECK_EXCEPTION((data.size() == image_width * image_height * sizeof(Color_rgb)), u8"Image data is invalid.");
 
-    // TODO:2016: Do the assignment here.
-    Bitmap bitmap{};
-    bitmap.width = image_width;
-    bitmap.height = image_height;
+    Bitmap bitmap{std::move(data), static_cast<unsigned int>(image_width), static_cast<unsigned int>(image_height), true};
     return bitmap;
 }
 
