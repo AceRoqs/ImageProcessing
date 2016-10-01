@@ -273,7 +273,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 {
                     int token = parse_int32(line_begin, line_end, &line_begin, &success);
                     CHECK_EXCEPTION(success, u8"Image data is invalid.");
-                    CHECK_EXCEPTION(token < image_max_value, u8"Image data is invalid.");
+                    CHECK_EXCEPTION((token >= 0) && (token <= image_max_value), u8"Image data is invalid.");
 
                     if((format == PixMap_format::P1) ||
                        (format == PixMap_format::P2))
@@ -307,7 +307,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
 
                         std::for_each(line_begin, line_end, [image_max_value, scale, &data](const uint8_t& value)
                         {
-                            CHECK_EXCEPTION(value < image_max_value, u8"Image data is invalid");
+                            CHECK_EXCEPTION((value >= 0) && (value <= image_max_value), u8"Image data is invalid.");
 
                             // P4/P5 only specify a single channel.  Expand to three channels here (R/G/B).
                             data.push_back(value * scale);
@@ -323,7 +323,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                         // RGB.
                         std::copy_if(line_begin, line_end, std::back_inserter(data), [image_max_value](const uint8_t& value) -> bool
                         {
-                            CHECK_EXCEPTION(value < image_max_value, u8"Image data is invalid");
+                            CHECK_EXCEPTION((value >= 0) && (value <= image_max_value), u8"Image data is invalid.");
                             return true;
                         });
                     }
