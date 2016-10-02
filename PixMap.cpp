@@ -298,8 +298,28 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                 }
                 else
                 {
-                    if((format == PixMap_format::P4) ||
-                       (format == PixMap_format::P5))
+                    // Black and white.
+                    if(format == PixMap_format::P4)
+                    {
+                        CHECK_EXCEPTION(line_end == (line_begin + (image_width * image_height) / 8), u8"Image data is invalid.");
+
+                        std::for_each(line_begin, line_end, [image_max_value, &data](uint8_t value)
+                        {
+                            for(int i = 0; i < 8; ++i)
+                            {
+                                uint8_t color = 255 - (((value & 0x80) >> 7) * 255);
+
+                                // P4 only specifies a single channel.  Expand to three channels here (R/G/B).
+                                data.push_back(color);
+                                data.push_back(color);
+                                data.push_back(color);
+
+                                value <<= 1;
+                            }
+                        });
+                    }
+                    // Grayscale.
+                    else if(format == PixMap_format::P5)
                     {
                         CHECK_EXCEPTION(line_end == (line_begin + (image_width * image_height)), u8"Image data is invalid.");
 
@@ -309,12 +329,13 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                         {
                             CHECK_EXCEPTION((value >= 0) && (value <= image_max_value), u8"Image data is invalid.");
 
-                            // P4/P5 only specify a single channel.  Expand to three channels here (R/G/B).
+                            // P5 only specifies a single channel.  Expand to three channels here (R/G/B).
                             data.push_back(value * scale);
                             data.push_back(value * scale);
                             data.push_back(value * scale);
                         });
                     }
+                    // RGB.
                     else
                     {
                         assert(format == PixMap_format::P6);
