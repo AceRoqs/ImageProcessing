@@ -279,7 +279,7 @@ Bitmap decode_bitmap_from_pixmap_memory(_In_reads_(size) const uint8_t* pixmap_m
                        (format == PixMap_format::P2))
                     {
                         // Black and white / Grayscale.
-                        CHECK_EXCEPTION((data.size() < image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
+                        CHECK_EXCEPTION((data.size() <= image_width * image_height * sizeof(Color_rgb) - 3), u8"Image data is invalid.");
 
                         const uint8_t scale = 255 / image_max_value;
 
