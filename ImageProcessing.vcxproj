@@ -56,12 +56,18 @@
     <ClInclude Include="PreCompile.h" />
     <ClInclude Include="targa.h" />
     <ClCompile Include="Bitmap.cpp" />
-    <ClCompile Include="pcx.cpp" />
-    <ClCompile Include="PixMap.cpp" />
+    <ClCompile Include="pcx.cpp">
+      <ControlFlowGuard Condition="'$(Configuration)'=='Release'">Guard</ControlFlowGuard>
+    </ClCompile>
+    <ClCompile Include="PixMap.cpp">
+      <ControlFlowGuard Condition="'$(Configuration)'=='Release'">Guard</ControlFlowGuard>
+    </ClCompile>
     <ClCompile Include="PreCompile.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="targa.cpp" />
+    <ClCompile Include="targa.cpp">
+      <ControlFlowGuard Condition="'$(Configuration)'=='Release'">Guard</ControlFlowGuard>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
