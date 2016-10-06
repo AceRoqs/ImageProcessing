@@ -1,5 +1,5 @@
 #include "PreCompile.h"
-#include "pcx.h"
+#include "pcx.h"                // Pick up forward declarations to ensure correctness.
 #include "Bitmap.h"
 #include <PortableRuntime/CheckException.h>
 
@@ -126,6 +126,22 @@ static void pcx_decode(
     rle_decode_fill(start_iterator, end_iterator,
                     bitmap_start_iterator, bitmap_end_iterator,
                     fill_buffer);
+}
+
+// This function is case sensitive due to the lack of library support for
+// UTF-8 case insensitive matching.
+// TODO: Consider case insensitive for ASCII subset of UTF-8.
+// TODO: 2016: There are many copies of this function.  Find a place to put file functions.
+static bool file_has_extension_case_sensitive(_In_z_ const char* file_name, _In_z_ const char* extension) noexcept
+{
+    const size_t length_file = strlen(file_name);
+    const size_t length_extension = strlen(extension);
+    return ((length_file >= length_extension) && (strcmp(file_name + length_file - length_extension, extension) == 0));
+}
+
+bool is_pcx_file_name(_In_z_ const char* file_name)
+{
+    return file_has_extension_case_sensitive(file_name, ".pcx");
 }
 
 Bitmap decode_bitmap_from_pcx_memory(_In_reads_(size) const uint8_t* pcx_memory, size_t size)
