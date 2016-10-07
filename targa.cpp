@@ -1,5 +1,5 @@
 #include "PreCompile.h"
-#include "targa.h"
+#include "targa.h"              // Pick up forward declarations to ensure correctness.
 #include "Bitmap.h"
 #include <PortableRuntime/CheckException.h>
 #include <PortableRuntime/Tracing.h>
@@ -155,7 +155,7 @@ static size_t get_pixel_data_offset(_In_ const TGA_header* header)
            static_cast<size_t>(header->color_map_length) * (header->color_map_bits_per_pixel / 8);
 }
 
-Bitmap decode_bitmap_from_tga_memory(_In_count_(size) const uint8_t* tga_memory, size_t size)
+Bitmap decode_bitmap_from_tga_memory(_In_reads_(size) const uint8_t* tga_memory, size_t size)
 {
     CHECK_EXCEPTION(size >= sizeof(TGA_header), u8"Image data is invalid.");
 
