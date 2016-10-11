@@ -1,6 +1,7 @@
 #include "PreCompile.h"
 #include "PixMap.h"             // Pick up forward declarations to ensure correctness.
 #include "Bitmap.h"
+#include "FileExtensionTest.h"
 #include <PortableRuntime/CheckException.h>
 
 // Portable PixMap specs:
@@ -181,17 +182,6 @@ static PixMap_format pixmap_format_from_string(const std::string& value)
     }
 
     return format;
-}
-
-// This function is case sensitive due to the lack of library support for
-// UTF-8 case insensitive matching.
-// TODO: Consider case insensitive for ASCII subset of UTF-8.
-// TODO: 2016: There are many copies of this function.  Find a place to put file functions.
-static bool file_has_extension_case_sensitive(_In_z_ const char* file_name, _In_z_ const char* extension) noexcept
-{
-    const size_t length_file = strlen(file_name);
-    const size_t length_extension = strlen(extension);
-    return ((length_file >= length_extension) && (strcmp(file_name + length_file - length_extension, extension) == 0));
 }
 
 bool is_pixmap_file_name(_In_z_ const char* file_name)
