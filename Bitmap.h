@@ -9,7 +9,8 @@ struct Color_rgb
 {
     // Empty default constructor is used to prevent zero-init when creating a std::vector<Color_rgb>.
     // These vectors are used as write targets for reads from disk, where zero-init would be inefficient.
-    Color_rgb() {}
+    explicit Color_rgb() {}
+    Color_rgb(uint8_t r, uint8_t g, uint8_t b) : red(r), green(g), blue(b) {}
 
     uint8_t red;
     uint8_t green;
