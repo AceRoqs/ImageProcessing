@@ -58,6 +58,7 @@
     <ClInclude Include="targa.h" />
     <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="FileExtensionTest.cpp" />
+    <ClCompile Include="Filter.cpp" />
     <ClCompile Include="pcx.cpp">
       <ControlFlowGuard Condition="'$(Configuration)'=='Release'">Guard</ControlFlowGuard>
     </ClCompile>
