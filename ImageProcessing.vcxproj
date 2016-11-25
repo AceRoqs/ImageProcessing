@@ -52,6 +52,7 @@
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="FileExtensionTest.h" />
+    <ClInclude Include="Filter.h" />
     <ClInclude Include="pcx.h" />
     <ClInclude Include="PixMap.h" />
     <ClInclude Include="PreCompile.h" />
