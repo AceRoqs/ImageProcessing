@@ -74,5 +74,23 @@ Bitmap apply_box_filter(const std::vector<float>& filter, unsigned int dimension
     return target;
 }
 
+void generate_topdown_gradient_in_place(Bitmap& target, const Color_rgb& start_color, const Color_rgb& end_color)
+{
+    auto pixel = reinterpret_cast<Color_rgb*>(&target.bitmap[0]);
+    for(unsigned int yy = 0; yy < target.height; ++yy)
+    {
+        Color_rgb color;
+        color.red = start_color.red + static_cast<uint8_t>(yy * ((end_color.red - start_color.red + 1.0f) / target.height));
+        color.green = start_color.green + static_cast<uint8_t>(yy * ((end_color.green - start_color.green + 1.0f) / target.height));
+        color.blue = start_color.blue + static_cast<uint8_t>(yy * ((end_color.blue - start_color.blue + 1.0f) / target.height));
+
+        for(unsigned int xx = 0; xx < target.width; ++xx)
+        {
+            *pixel = color;
+            ++pixel;
+        }
+    }
+}
+
 }
 
