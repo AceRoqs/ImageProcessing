@@ -92,5 +92,24 @@ void generate_topdown_gradient_in_place(Bitmap& target, const Color_rgb& start_c
     }
 }
 
+void generate_bottomup_gradient_in_place(Bitmap& target, const Color_rgb& start_color, const Color_rgb& end_color)
+{
+    for(unsigned int yy = 0; yy < target.height; ++yy)
+    {
+        Color_rgb color;
+        color.red = start_color.red + static_cast<uint8_t>(yy * ((end_color.red - start_color.red + 1.0f) / target.height));
+        color.green = start_color.green + static_cast<uint8_t>(yy * ((end_color.green - start_color.green + 1.0f) / target.height));
+        color.blue = start_color.blue + static_cast<uint8_t>(yy * ((end_color.blue - start_color.blue + 1.0f) / target.height));
+
+        auto pixel = reinterpret_cast<Color_rgb*>(&target.bitmap[0]) + (target.height - yy - 1) * target.width;
+
+        for(unsigned int xx = 0; xx < target.width; ++xx)
+        {
+            *pixel = color;
+            ++pixel;
+        }
+    }
+}
+
 }
 
